@@ -66,6 +66,74 @@ This lemma underpins the correctness of **level-by-level early termination** in 
 
 ---
 
+## Corollary (Intra-Level Truncation Completeness)
+
+> **Corollary.** Let $G=(V,E)$ be a simple undirected graph and $s\in V$ a source vertex. Perform BFS from $s$ and let $t$ be the first level at which any non-tree edge is discovered (either intra-level or cross-level). Then:
+>
+> **(i) Generation Stop.** It is safe to terminate the generation of level $t+1$ frontier immediately. No non-tree edge in levels $\geq t+1$ can form a cycle shorter than $2t+2$.
+>
+> **(ii) Intra-Level Scan Obligation.** It is necessary and sufficient to finish scanning all remaining vertices at level $t$. The only possible shorter cycle is formed by an intra-level non-tree edge $(x,y)$ with $\ell(x)=\ell(y)=t$, yielding length $2t+1$.
+>
+> **(iii) Cross-Level Redundancy.** Within level $t$, checking for additional cross-level edges $(x,y)$ with $\ell(x)=t,\ \ell(y)=t+1$ is redundant for improving the lower bound; all such edges yield the identical cycle length $2t+2$.
+>
+> **(iv) Exact Result.** After level $t$ has been fully scanned, the exact girth contributed by source $s$ is:
+> $$
+> g_s = \begin{cases}
+> 2t+1, & \text{if an intra-level non-tree edge exists in level } t, \\
+> 2t+2, & \text{if only cross-level non-tree edges exist in level } t, \\
+> \infty, & \text{if no non-tree edge exists up to level } t.
+> \end{cases}
+> $$
+>
+> **推论。** 设 $G=(V,E)$ 为简单无向图，$s\in V$ 为源点。从 $s$ 执行 BFS，令 $t$ 为首次发现任何非树边（无论同层或跨层）的层级。则：
+>
+> **（i）生成终止。** 可立即终止生成第 $t+1$ 层 frontier。任何层级 $\geq t+1$ 的非树边都不可能形成长度 $< 2t+2$ 的环。
+>
+> **（ii）同层扫描义务。** 必须且只需扫描完第 $t$ 层所有剩余顶点。唯一可能存在的更短环由同层非树边 $(x,y)$（$\ell(x)=\ell(y)=t$）构成，长度为 $2t+1$。
+>
+> **（iii）跨层冗余性。** 在第 $t$ 层内，检查额外的跨层边 $(x,y)$（$\ell(x)=t,\ \ell(y)=t+1$）对于改进下界是冗余的；所有此类边均产生相同的环长度 $2t+2$。
+>
+> **（iv）精确结果。** 第 $t$ 层完全扫描后，源点 $s$ 贡献的精确围长分量为：
+> $$
+> g_s = \begin{cases}
+> 2t+1, & \text{若第 } t \text{ 层存在同层非树边}, \\
+> 2t+2, & \text{若第 } t \text{ 层仅存在跨层非树边}, \\
+> \infty, & \text{若截至第 } t \text{ 层未发现任何非树边}.
+> \end{cases}
+> $$
+
+---
+
+### Proof
+
+We consider the state of BFS immediately after the first non-tree edge has been discovered at level $t$.
+
+**Claim (i):** For any non-tree edge $(x,y)$ with $\min(\ell(x),\ell(y)) \geq t+1$, the cycle length is at least $2(t+1)+1 = 2t+3 \gt 2t+2$. This follows directly from the cycle length formula $L = \ell(x)+\ell(y)+1$ and the level lower bound. Thus, no deeper level can improve the current best.
+
+**Claim (ii):** For any non-tree edge with at least one endpoint at level $t$:
+- If $\ell(x)=\ell(y)=t$, then $L = 2t+1 \lt 2t+2$.
+- If $\ell(x)=t,\ \ell(y)\in\{t,t+1\}$, then $L \geq 2t+2$.
+
+Therefore, the only candidate that can beat the current cross-level edge must be an intra-level edge entirely within level $t$. Since BFS processes vertices level-by-level, all such candidates are contained among the remaining unscanned vertices of level $t$.
+
+**Claim (iii):** All cross-level edges incident to level $t$ have the form $(x,y)$ with $\ell(x)=t,\ \ell(y)=t+1$ (by the BFS property $|\ell(x)-\ell(y)|\leq 1$). Their cycle length is identically $t+(t+1)+1 = 2t+2$. Discovering more of them cannot lower the minimum.
+
+**Claim (iv):** Exhaustive enumeration of the three mutually exclusive cases above yields the exact piecewise formula. $\square$
+
+---
+
+### Engineering Interpretation
+
+This corollary justifies the **aggressive truncation** strategy in the GPU kernel design:
+
+> **Kernel Execution Policy:**
+> Once the first non-tree edge is detected at level $t$ (via `atomicMin` on a global counter), the host should **immediately stop launching subsequent level-generation kernels**. However, the **current level-$t$ kernel must continue to completion** to scan all remaining frontier vertices for potential intra-level edges. Within this kernel, threads need only check whether a neighbor's level equals $t$ (intra-level candidate); neighbors at level $t+1$ can be safely ignored for girth minimization because they cannot yield a value smaller than $2t+2$.
+>
+> 一旦在第 $t$ 层首次检测到非树边（通过全局计数器的 `atomicMin`），Host 端应**立即停止启动后续层级生成 kernel**。但**当前第 $t$ 层的 kernel 必须执行完毕**，以扫描所有剩余 frontier 顶点寻找潜在同层边。在此 kernel 中，线程只需检查邻居的层级是否等于 $t$（同层候选）；层级为 $t+1$ 的邻居对于围长最小化可安全忽略，因为它们不可能产生小于 $2t+2$ 的值。
+
+
+---
+
 ## Notation Reference / 符号说明
 
 | Symbol / 符号 | Meaning / 含义 |
