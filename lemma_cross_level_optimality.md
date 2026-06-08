@@ -45,7 +45,7 @@ Consider any non-tree edge $(x,y)$ at level $d \geq t+1$. By the standard BFS pr
 | Case / 情况 | Level relation / 层级关系 | Cycle length / 环长度 | Comparison / 比较 |
 |:---|:---|:---|:---|
 | Intra-level / 同层 | $\ell(x)=\ell(y)=d$ | $2d+1$ | $\geq 2(t+1)+1 = 2t+3 > 2t+2$ |
-| Cross-level / 跨层 | $\vert \ell(x)-\ell(y) \vert =1$ | $2d+2$ |$\geq 2(t+1)+2 = 2t+4 > 2t+2$ |
+| Cross-level / 跨层 | $\vert \ell(x)-\ell(y) \vert =1$ | $2d+2$ | $\geq 2(t+1)+2 = 2t+4 > 2t+2$ |
 
 In both cases, the cycle length is strictly greater than $2t+2$. Therefore, a cycle shorter than $2t+2$ can only be hidden among other non-tree edges **within the same level $t$**, and never appears in level $t+1$ or deeper. $\square$
 
