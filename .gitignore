@@ -1,6 +1,35 @@
+# CUDA intermediate
 *.i
 *.ii
 *.gpu
 *.ptx
 *.cubin
 *.fatbin
+*.cudafe1.*
+
+# Build
+build/
+cmake-build-*/
+dist/
+*.egg-info/
+__pycache__/
+*.so
+*.pyd
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Python
+.mypy_cache/
+.pytest_cache/
+venv/
+.venv/
+
+# Data
+*.mtx
+*.graph
+bench/graphs/*.bin

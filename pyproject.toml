@@ -1,0 +1,32 @@
+[build-system]
+requires = [
+    "scikit-build-core>=0.9",
+    "pybind11>=2.11",
+    "cmake>=3.21",
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "cuda-girth"
+version = "0.1.0"
+description = "High-performance exact girth computation on GPU"
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.21",
+    "scipy>=1.7",
+    "networkx>=2.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7",
+    "igraph>=0.11",
+]
+
+[tool.scikit-build]
+cmake.args = [
+    "-DCUDA_GIRTH_BUILD_PYTHON=ON",
+    "-DCUDA_GIRTH_BUILD_TESTS=OFF",
+    "-DCUDA_GIRTH_BUILD_BENCH=OFF",
+]
+wheel.packages = ["python/cuda_girth"]
