@@ -35,9 +35,6 @@ venv/
 *.graph
 bench/graphs/*.bin
 
-# Ephemeral logs
-docs/*errors*.log
-
 
 
 
