@@ -30,6 +30,7 @@ if(CUDA_GIRTH_BUILD_PYTHON)
     include(FetchContent)
     FetchContent_Declare(
         pybind11
+        # 中国大陆用户可替换为: https://gitee.com/mirrors/pybind11.git
         GIT_REPOSITORY https://github.com/pybind/pybind11.git
         GIT_TAG        v2.11.1
     )
@@ -108,4 +109,5 @@ if(CUDA_GIRTH_BUILD_PYTHON)
     pybind11_add_module(_core python/cuda_girth/_bindings.cpp)
     target_link_libraries(_core PRIVATE cuda_girth_core)
     target_include_directories(_core PRIVATE include)
+    install(TARGETS _core DESTINATION cuda_girth)
 endif()
