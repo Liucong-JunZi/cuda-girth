@@ -1,5 +1,8 @@
 # cuda-girth
 
+[![PyPI](https://img.shields.io/pypi/v/cuda-girth)](https://pypi.org/project/cuda-girth/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 GPU-accelerated exact girth computation via multi-source lockstep BFS.
 
 Given an undirected simple graph, the **girth** is the length of its shortest cycle. This library computes it exactly, for every vertex as source, using CUDA to saturate the GPU.
@@ -7,7 +10,7 @@ Given an undirected simple graph, the **girth** is the length of its shortest cy
 ## Quick Start
 
 ```bash
-pip install cuda_girth-0.1.0-cp312-cp312-linux_x86_64.whl
+pip install cuda-girth
 ```
 
 ```python
@@ -116,10 +119,11 @@ Plain edge-list text file. First line: `n m` (vertices, edges). Then `m` lines o
 
 ## Requirements
 
+- Linux x86_64 with NVIDIA GPU (SM 75+)
 - CUDA Toolkit ≥ 11.2
-- C++17 compiler (GCC ≥ 9, Clang ≥ 10, MSVC 2019+)
-- CMake ≥ 3.21
-- Python ≥ 3.9 (optional: numpy, scipy, networkx, pybind11)
+- Python ≥ 3.9
+
+For building from source: C++17 compiler (GCC ≥ 9), CMake ≥ 3.21.
 
 ## License
 
