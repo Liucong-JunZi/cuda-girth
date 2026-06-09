@@ -70,6 +70,8 @@ target_link_libraries(cuda_girth_core
         CUDA::cudart
         CUDA::cuda_driver
 )
+# Ensure object files are position-independent — needed when _core.so links this archive.
+set_target_properties(cuda_girth_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # ---------------------------------------------------------------------------
 # CLI executable
