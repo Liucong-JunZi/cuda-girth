@@ -10,11 +10,6 @@
 #include "cuda_girth/csr_graph.h"
 #include "cuda_girth/bfs_state.h"
 #include "cuda_girth/batch_state.h"
-#include <cooperative_groups.h>
-#include <cooperative_groups/reduce.h>
-
-namespace cg = cooperative_groups;
-
 namespace cuda_girth {
 
 static constexpr int WARP_SIZE  = 32;
@@ -70,8 +65,12 @@ __global__ void bfs_level_kernel(
         }
     }
 
-    auto warp = cg::tiled_partition<WARP_SIZE>(cg::this_thread_block());
-    int warp_best = warp.reduce(local_best, cg::less<int>());
+    // Warp-level reduction via __shfl_down_sync (portable across all CUDA versions)
+    int warp_best = local_best;
+    for (int offset = WARP_SIZE / 2; offset > 0; offset /= 2) {
+        int other = __shfl_down_sync(0xffffffff, warp_best, offset);
+        warp_best = min(warp_best, other);
+    }
 
     if (lid == 0 && warp_best < INF_CYCLE) {
         atomicMin(global_min_cycle, warp_best);
@@ -141,8 +140,12 @@ __global__ void bfs_level_batched_kernel(
         }
     }
 
-    auto warp = cg::tiled_partition<WARP_SIZE>(cg::this_thread_block());
-    int warp_best = warp.reduce(local_best, cg::less<int>());
+    // Warp-level reduction via __shfl_down_sync (portable across all CUDA versions)
+    int warp_best = local_best;
+    for (int offset = WARP_SIZE / 2; offset > 0; offset /= 2) {
+        int other = __shfl_down_sync(0xffffffff, warp_best, offset);
+        warp_best = min(warp_best, other);
+    }
 
     if (lid == 0 && warp_best < INF_CYCLE) {
         atomicMin(my_min, warp_best);
