@@ -37,7 +37,7 @@ void BfsState::init(int32_t source_vertex, const CsrGraph& graph) {
     CUDA_CHECK(cudaMallocManaged(&global_min_cycle, sizeof(int32_t)));
 
     // Initialize
-    for (int32_t i = 0; i < n; ++i) levels[i] = -1;
+    CUDA_CHECK(cudaMemset(levels, 0xFF, n * sizeof(int32_t)));
     levels[source]            = 0;
     frontier[0]               = source;
     frontier_size             = 1;

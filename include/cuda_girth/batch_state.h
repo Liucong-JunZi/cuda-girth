@@ -15,8 +15,7 @@ struct BatchState {
     int32_t* levels;              // [S * V]       BFS level per (source, vertex)
     int32_t* min_cycle;           // [S]           result per source
     int32_t* active;              // [S]           1=running, 0=done
-    int32_t* frontier_size;       // [S]           current frontier size
-    int32_t* next_size;           // [S]           next frontier size (device counter)
+    int32_t* next_size;           // [S]           next frontier size counter
     int32_t* next_frontier;       // [S * V]       next level output buffer
 
     // ---- compact frontier (rebuilt each level by host) ----

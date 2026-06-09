@@ -31,10 +31,10 @@ static size_t gpu_free_mem() {
 }
 
 static int32_t calc_batch_size(int32_t num_vertices) {
-    // Each source costs ~3 * V * sizeof(int32) bytes (levels + frontier buffers).
+    // Each source costs ~4 * V * sizeof(int32) bytes (levels + next_frontier + source_ids + frontier).
     // Leave 20% margin.
     size_t free_bytes = gpu_free_mem();
-    size_t per_source = 3ull * num_vertices * sizeof(int32_t);
+    size_t per_source = 4ull * num_vertices * sizeof(int32_t);
     if (per_source == 0) per_source = 1;
     int32_t max_by_mem = static_cast<int32_t>((free_bytes * 8 / 10) / per_source);
     if (max_by_mem < 1) max_by_mem = 1;
@@ -47,7 +47,7 @@ static int32_t calc_batch_size(int32_t num_vertices) {
 BatchState::BatchState()
     : num_sources(0), num_vertices(0), current_level(0),
       levels(nullptr), min_cycle(nullptr), active(nullptr),
-      frontier_size(nullptr), next_size(nullptr), next_frontier(nullptr),
+      next_size(nullptr), next_frontier(nullptr),
       source_ids(nullptr), frontier(nullptr), total_frontier_size(0),
       batch_start(0)
 {}
@@ -68,7 +68,6 @@ void BatchState::init(int32_t batch_start_, int32_t batch_size,
     CUDA_CHECK(cudaMallocManaged(&levels,       S * V * sizeof(int32_t)));
     CUDA_CHECK(cudaMallocManaged(&min_cycle,    S * sizeof(int32_t)));
     CUDA_CHECK(cudaMallocManaged(&active,       S * sizeof(int32_t)));
-    CUDA_CHECK(cudaMallocManaged(&frontier_size, S * sizeof(int32_t)));
     CUDA_CHECK(cudaMallocManaged(&next_size,    S * sizeof(int32_t)));
     CUDA_CHECK(cudaMallocManaged(&next_frontier, S * V * sizeof(int32_t)));
 
@@ -87,7 +86,6 @@ void BatchState::init(int32_t batch_start_, int32_t batch_size,
 
         min_cycle[s]     = INT32_MAX;
         active[s]        = 1;
-        frontier_size[s] = 1;
         next_size[s]     = 0;
 
         source_ids[s] = s;
@@ -108,7 +106,7 @@ void BatchState::init(int32_t batch_start_, int32_t batch_size,
 void BatchState::free() {
     auto sf = [](int32_t*& p) { if (p) { cudaFree(p); p = nullptr; } };
     sf(levels);       sf(min_cycle);   sf(active);
-    sf(frontier_size); sf(next_size);  sf(next_frontier);
+    sf(next_size);    sf(next_frontier);
     sf(source_ids);   sf(frontier);
 }
 
@@ -116,13 +114,12 @@ BatchState::BatchState(BatchState&& o) noexcept
     : num_sources(o.num_sources), num_vertices(o.num_vertices),
       current_level(o.current_level),
       levels(o.levels), min_cycle(o.min_cycle), active(o.active),
-      frontier_size(o.frontier_size), next_size(o.next_size),
-      next_frontier(o.next_frontier),
+      next_size(o.next_size), next_frontier(o.next_frontier),
       source_ids(o.source_ids), frontier(o.frontier),
       total_frontier_size(o.total_frontier_size), batch_start(o.batch_start)
 {
     o.levels = o.min_cycle = o.active = nullptr;
-    o.frontier_size = o.next_size = o.next_frontier = nullptr;
+    o.next_size = o.next_frontier = nullptr;
     o.source_ids = o.frontier = nullptr;
 }
 
@@ -132,12 +129,11 @@ BatchState& BatchState::operator=(BatchState&& o) noexcept {
         num_sources = o.num_sources; num_vertices = o.num_vertices;
         current_level = o.current_level;
         levels = o.levels; min_cycle = o.min_cycle; active = o.active;
-        frontier_size = o.frontier_size; next_size = o.next_size;
-        next_frontier = o.next_frontier;
+        next_size = o.next_size; next_frontier = o.next_frontier;
         source_ids = o.source_ids; frontier = o.frontier;
         total_frontier_size = o.total_frontier_size; batch_start = o.batch_start;
         o.levels = o.min_cycle = o.active = nullptr;
-        o.frontier_size = o.next_size = o.next_frontier = nullptr;
+        o.next_size = o.next_frontier = nullptr;
         o.source_ids = o.frontier = nullptr;
     }
     return *this;
@@ -194,7 +190,6 @@ int32_t girth_batched(const CsrGraph& graph, int32_t batch_start,
                 batch.frontier[pos]    = src_next[i];
             }
 
-            batch.frontier_size[s] = ns;
             batch.next_size[s]     = 0;   // reset for next kernel
         }
 
