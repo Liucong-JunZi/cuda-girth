@@ -3,6 +3,7 @@
 #include <string>
 #include "cuda_girth/girth_engine.h"
 #include "cuda_girth/csr_graph.h"
+#include "cuda_girth/graph_io.h"
 #include "cuda_girth/timer.h"
 
 namespace cg = cuda_girth;
