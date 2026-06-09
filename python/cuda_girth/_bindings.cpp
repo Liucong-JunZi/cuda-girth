@@ -19,7 +19,7 @@ static cg::CsrGraph numpy_to_csr(py::array_t<int32_t> indptr,
     auto buf_ind = indices.request();
 
     int32_t n = static_cast<int32_t>(buf_ptr.size) - 1;
-    size_t total_edges = buf_ind.size();
+    size_t total_edges = buf_ind.size;
 
     std::vector<int32_t> row, col;
     row.reserve(total_edges);
