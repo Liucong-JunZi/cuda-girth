@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <vector>
+#include "cuda_girth/portability.h"
 
 namespace cuda_girth {
 
@@ -18,10 +19,19 @@ struct CsrGraph {
 
     ~CsrGraph();
 
-    // Move-only
+    // Move
     CsrGraph(CsrGraph&& other) noexcept;
     CsrGraph& operator=(CsrGraph&& other) noexcept;
-    CsrGraph(const CsrGraph&) = delete;
+
+    // Shallow copy (CUDA kernel launch needs by-value arguments;
+    // copied struct does NOT own memory — safe because it's ephemeral).
+    CsrGraph(const CsrGraph& other) noexcept
+        : num_vertices(other.num_vertices)
+        , num_edges(other.num_edges)
+        , row_ptr(other.row_ptr)
+        , col_ind(other.col_ind)
+        , owns_memory(false) {}
+
     CsrGraph& operator=(const CsrGraph&) = delete;
 
     /// Number of neighbours of vertex v.

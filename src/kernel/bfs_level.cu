@@ -11,6 +11,7 @@
 #include "cuda_girth/bfs_state.h"
 #include "cuda_girth/batch_state.h"
 #include <cooperative_groups.h>
+#include <cooperative_groups/reduce.h>
 
 namespace cg = cooperative_groups;
 

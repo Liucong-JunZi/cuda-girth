@@ -7,6 +7,4 @@
     #define __host__
     #define __device__
     #define __forceinline__ inline
-    using cudaStream_t = void*;
-    using cudaEvent_t  = void*;
 #endif
