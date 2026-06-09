@@ -13,6 +13,7 @@ cmake-build-*/
 dist/
 *.egg-info/
 __pycache__/
+*.whl
 *.so
 *.pyd
 
@@ -33,5 +34,7 @@ venv/
 *.mtx
 *.graph
 bench/graphs/*.bin
+
+
 
 
